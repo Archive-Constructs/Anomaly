@@ -1,0 +1,31 @@
+{
+  "block.anomaly.hextech_teleporter": "Hextech Teleporter",
+  "block.anomaly.diamond_mesh": "Diamond Mesh",
+  "block.anomaly.landing_pad": "Landing Pad",
+  "block.anomaly.teleporter_terminal": "Teleporter Terminal",
+  "block.anomaly.cable_connector": "Cable Connector",
+  "block.anomaly.hextech_spire": "Hextech Spire",
+
+  "item.anomaly.teleporter_linker": "Teleporter Linker",
+  "item.anomaly.spire_mark": "Spire Mark",
+  "item.anomaly.echo_nugget": "Echo Nugget",
+
+  "item.anomaly.hextech_crystal": "Hextech Crystal",
+  "item.anomaly.hextech_gemstone": "Hextech Gemstone",
+
+  "item.anomaly.overcharged_anomaly": "Overcharged Anomaly",
+  "item.anomaly.arcane_anomaly": "Arcane Anomaly",
+
+  "item.anomaly.echo_relocator": "Echo Relocator",
+  "item.anomaly.totem_of_forcefield": "Totem of Forcefield",
+
+  "block.anomaly.reinforced_redstone_block": "Reinforced Redstone Block",
+
+  "item.anomaly.runeforged_crown": "Runeforged Crown",
+  "item.anomaly.echolocator": "Echolocator",
+
+  "itemGroup.anomaly_tab": "Anomaly",
+
+  "entity.anomaly.wild_rune" : "Wild Rune",
+  "entity.anomaly.overcharged_anomaly" : "Overcharged Anomaly"
+}

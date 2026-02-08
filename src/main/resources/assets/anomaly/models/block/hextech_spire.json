@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "anomaly:block/spire_top",
+    "bottom": "anomaly:block/spire_bottom",
+    "side": "anomaly:block/spire_side"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "anomaly:hextech_teleporter",
+    "anomaly:diamond_mesh",
+    "anomaly:landing_pad",
+    "anomaly:teleporter_terminal",
+    "anomaly:cable_connector",
+    "anomaly:hextech_spire",
+    "anomaly:reinforced_redstone_block"
+  ]
+}

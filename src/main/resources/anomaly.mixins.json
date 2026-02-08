@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "net.pufferfish.anomaly.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "EnchantingTableBlockMixin",
+    "ExampleMixin",
+    "ItemEntityMixin",
+    "LivingEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+	}
+}

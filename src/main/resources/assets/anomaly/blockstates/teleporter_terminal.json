@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "anomaly:block/teleporter_terminal" }
+  }
+}

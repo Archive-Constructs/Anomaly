@@ -1,0 +1,44 @@
+{
+  "wild_rune_ambient": {
+    "subtitle": "sound.anomaly.wild_rune.ambient",
+    "sounds": [
+      "anomaly:wild_rune/ambient"
+    ]
+  },
+  "hextech_crystal_explosion": {
+    "subtitle": "sound.anomaly.hextech_crystal.explosion",
+    "sounds": [
+      "anomaly:hextech_crystal/explosion"
+    ]
+  },
+  "hextech_spire_shooting": {
+    "subtitle": "sound.anomaly.hextech_spire.shooting",
+    "sounds": [
+      "anomaly:hextech_spire/shooting"
+    ]
+  },
+  "hextech_teleporter_accelerating": {
+    "subtitle": "sound.anomaly.hextech_teleporter.accelerating",
+    "sounds": [
+      "anomaly:hextech_teleporter/teleport"
+    ]
+  },
+  "overcharged_anomaly_ambient": {
+    "subtitle": "sound.anomaly.overcharged_anomaly.ambient",
+    "sounds": [
+      "anomaly:overcharged_anomaly/ambient"
+    ]
+  },
+  "overcharged_anomaly_critical": {
+    "subtitle": "sound.anomaly.overcharged_anomaly.critical",
+    "sounds": [
+      "anomaly:overcharged_anomaly/explosion"
+    ]
+  },
+  "runeforged_crown_explosion": {
+    "subtitle": "sound.anomaly.runeforged_crown.explosion",
+    "sounds": [
+      "anomaly:runeforged_crown/knockback"
+    ]
+  }
+}

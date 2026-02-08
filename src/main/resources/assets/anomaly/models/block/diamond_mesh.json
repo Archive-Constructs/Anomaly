@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "anomaly:block/diamond_mesh_top",
+    "bottom": "anomaly:block/diamond_mesh_bottom",
+    "side": "anomaly:block/diamond_mesh_side"
+  }
+}

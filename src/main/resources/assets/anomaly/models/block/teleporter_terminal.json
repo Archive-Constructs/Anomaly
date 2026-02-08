@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "anomaly:block/teleporter_terminal_top",
+    "bottom": "anomaly:block/teleporter_terminal_bottom",
+    "side": "anomaly:block/teleporter_terminal_side"
+  }
+}

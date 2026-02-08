@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "QAQ",
+    "A#A",
+    "QAQ"
+  ],
+  "key": {
+    "A": {
+      "item": "anomaly:echo_nugget"
+    },
+    "#": {
+      "item": "minecraft:diamond"
+    },
+    "Q": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "result": {
+    "item": "anomaly:diamond_mesh"
+  }
+}
