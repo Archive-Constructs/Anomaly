@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    "LAL",
+    "G G"
+  ],
+  "key": {
+    "Q": {
+      "item": "anomaly:teleporter_terminal"
+    },
+    "A": {
+      "item": "minecraft:netherite_helmet"
+    },
+    "G": {
+      "item": "anomaly:hextech_gemstone"
+    },
+    "L": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "result": {
+    "item": "anomaly:runeforged_crown"
+  }
+}

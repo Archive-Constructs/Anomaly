@@ -38,6 +38,7 @@ public final class ModItemGroup {
 
                             // Items
                             entries.add(ModItems.SPIRE_MARK);
+                            entries.add(ModItems.HEXTECH_WRENCH_ITEM);
                             entries.add(ModItems.TELEPORTER_LINKER);
                             entries.add(ModItems.ARCANE_ANOMALY);
                             entries.add(ModItems.OVERCHARGED_ANOMALY);

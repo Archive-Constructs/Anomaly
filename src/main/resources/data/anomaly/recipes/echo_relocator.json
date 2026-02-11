@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "G#Q",
+    "LAQ",
+    "G#Q"
+  ],
+  "key": {
+    "#": {
+      "item": "anomaly:echo_nugget"
+    },
+    "Q": {
+      "item": "minecraft:copper_ingot"
+    },
+    "A": {
+      "item": "anomaly:hextech_gemstone"
+    },
+    "G": {
+      "item": "minecraft:iron_ingot"
+    },
+    "L": {
+      "item": "anomaly:hextech_teleporter"
+    }
+  },
+  "result": {
+    "item": "anomaly:echo_relocator"
+  }
+}

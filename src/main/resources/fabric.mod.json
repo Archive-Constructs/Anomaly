@@ -1,11 +1,11 @@
 {
 	"schemaVersion": 1,
 	"id": "anomaly",
-	"version": "${version}",
+	"version": "1.0.0",
 	"name": "Anomaly",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A totally sane minecraft tech mod",
 	"authors": [
-		"Me!"
+		"PufferfishGaming, BoxedBoi"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",

@@ -40,5 +40,17 @@
     "sounds": [
       "anomaly:runeforged_crown/knockback"
     ]
+  },
+  "copper_wrench_hit": {
+    "subtitle": "sound.anomaly.hextech_wrench.hit",
+    "sounds": [
+      "anomaly:hextech_wrench/bonk"
+    ]
+  },
+  "cable_connector_hum": {
+    "subtitle": "sound.anomaly.cable_connector.hum",
+    "sounds": [
+      "anomaly:cable_connector/light_hum"
+    ]
   }
 }

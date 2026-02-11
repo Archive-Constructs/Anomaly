@@ -190,14 +190,6 @@ public class RuneforgedCrownItem extends ArmorItem {
                 true
         ));
 
-        player.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.SLOWNESS,
-                20 * 5,  // 10 seconds
-                2,        // amplifier 1 = Slowness II
-                true,
-                false,
-                true
-        ));
 
         world.spawnParticles(
                 ParticleTypes.FLASH,

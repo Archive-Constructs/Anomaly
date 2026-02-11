@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -56,6 +57,13 @@ public final class TotemOfForcefieldItem extends Item {
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 45 * 20, 1));
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 5 * 20, 1));
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 40 * 20, 0));
+
+        // Additional visuals
+        ServerWorld world = (ServerWorld) player.getWorld();
+        Vec3d pos = player.getPos();
+        world.spawnParticles(ParticleTypes.FLASH, pos.x, pos.y + 1.0, pos.z, 1, 0, 0, 0, 0);
+        world.spawnParticles(ParticleTypes.END_ROD, pos.x, pos.y + 1.0, pos.z, 40, 0.6, 0.4, 0.6, 0.05);
+        world.spawnParticles(ParticleTypes.SONIC_BOOM, pos.x, pos.y + 1.0, pos.z, 1, 0, 0, 0, 0);
 
         // Push everyone away
         pushEntitiesAway(player, 8.0, 1.6, 0.35);
@@ -115,6 +123,9 @@ public final class TotemOfForcefieldItem extends Item {
 
             living.addVelocity(0.0, lift, 0.0);
             living.velocityModified = true;
+
+            // Impact particles for each entity pushed
+            world.spawnParticles(ParticleTypes.CLOUD, living.getX(), living.getY() + 1.0, living.getZ(), 5, 0.2, 0.2, 0.2, 0.05);
         }
     }
 
@@ -155,6 +166,12 @@ public final class TotemOfForcefieldItem extends Item {
             spawnPos = target.getSpawnPos();
         }
 
+        // Source particles
+        ServerWorld sourceWorld = (ServerWorld) player.getWorld();
+        Vec3d sourcePos = player.getPos();
+        sourceWorld.spawnParticles(ParticleTypes.POOF, sourcePos.x, sourcePos.y + 1.0, sourcePos.z, 20, 0.5, 0.5, 0.5, 0.1);
+        sourceWorld.spawnParticles(ParticleTypes.PORTAL, sourcePos.x, sourcePos.y + 1.0, sourcePos.z, 50, 0.5, 0.8, 0.5, 0.1);
+
         player.teleport(
                 target,
                 spawnPos.getX() + 0.5,
@@ -163,6 +180,11 @@ public final class TotemOfForcefieldItem extends Item {
                 player.getYaw(),
                 player.getPitch()
         );
+
+        // Target particles
+        target.spawnParticles(ParticleTypes.SONIC_BOOM, spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5, 1, 0, 0, 0, 0);
+        target.spawnParticles(ParticleTypes.FLASH, spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5, 1, 0, 0, 0, 0);
+        target.spawnParticles(ParticleTypes.POOF, spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5, 20, 0.5, 0.5, 0.5, 0.1);
 
         target.playSound(
                 null,

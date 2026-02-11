@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AGA",
+    "LQL",
+    "AAA"
+  ],
+  "key": {
+    "Q": {
+      "item": "anomaly:cable_connector"
+    },
+    "A": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "anomaly:hextech_gemstone"
+    },
+    "L": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "result": {
+    "item": "anomaly:hextech_teleporter"
+  }
+}

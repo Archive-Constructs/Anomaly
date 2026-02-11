@@ -1,6 +1,6 @@
 {
   "block.anomaly.hextech_teleporter": "Hextech Teleporter",
-  "block.anomaly.diamond_mesh": "Diamond Mesh",
+  "block.anomaly.diamond_mesh": "Hextech Mesh",
   "block.anomaly.landing_pad": "Landing Pad",
   "block.anomaly.teleporter_terminal": "Teleporter Terminal",
   "block.anomaly.cable_connector": "Cable Connector",
@@ -23,9 +23,14 @@
 
   "item.anomaly.runeforged_crown": "Runeforged Crown",
   "item.anomaly.echolocator": "Echolocator",
+  "item.anomaly.hextech_wrench": "Copper Wrench",
 
   "itemGroup.anomaly_tab": "Anomaly",
 
+  "enchantment.anomaly.slaughter": "Slaughter",
+
   "entity.anomaly.wild_rune" : "Wild Rune",
-  "entity.anomaly.overcharged_anomaly" : "Overcharged Anomaly"
+  "entity.anomaly.overcharged_anomaly" : "Overcharged Anomaly",
+
+  "enchantment.anomaly.slaughter.desc" : "Deals more damage to players in higher level armor"
 }

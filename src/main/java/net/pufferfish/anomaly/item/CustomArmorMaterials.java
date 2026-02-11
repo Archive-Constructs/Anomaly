@@ -13,8 +13,8 @@ public enum CustomArmorMaterials implements ArmorMaterial {
             7,                       // durability multiplier (gold uses 7)
             new int[]{0, 0, 0, 2},   // protection per type: BOOTS, LEGGINGS, CHESTPLATE, HELMET
             25,
-            0.0f,
-            0.0f,
+            2.0f,
+            1.0f,
             SoundEvents.ITEM_ARMOR_EQUIP_GOLD
     );
 

@@ -1,22 +1,25 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "QQQ",
-    "#A#",
-    "###"
+    "###",
+    "QAQ",
+    "#L#"
   ],
   "key": {
     "A": {
-      "item": "anomaly:echo_nugget"
+      "item": "anomaly:hextech_gemstone"
     },
     "#": {
       "item": "minecraft:iron_ingot"
     },
     "Q": {
       "item": "minecraft:copper_ingot"
+    },
+    "L": {
+      "item": "anomaly:cable_connector"
     }
   },
   "result": {
-    "item": "anomaly:diamond_mesh"
+    "item": "anomaly:hextech_spire"
   }
 }

@@ -64,8 +64,12 @@ public final class ModItems {
     public static final Item TOTEM_OF_FORCEFIELD =
             new TotemOfForcefieldItem(new Item.Settings().maxCount(1));
 
+
     public static final Item REINFORCED_REDSTONE_BLOCK_ITEM =
             new BlockItem(ModBlocks.REINFORCED_REDSTONE_BLOCK, new Item.Settings());
+
+    public static final Item HEXTECH_WRENCH_ITEM =
+            new HextechWrenchItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC));
 
     public static final Item RUNEFORGED_CROWN = register("runeforged_crown",
             new RuneforgedCrownItem(CustomArmorMaterials.RUNEFORGED, ArmorItem.Type.HELMET, new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
@@ -77,6 +81,7 @@ public final class ModItems {
 
     public static void register() {
         Registry.register(Registries.ITEM, Ids.id("hextech_teleporter"), HEXTECH_TELEPORTER_ITEM);
+        Registry.register(Registries.ITEM, Ids.id("hextech_wrench"), HEXTECH_WRENCH_ITEM);
         Registry.register(Registries.ITEM, Ids.id("echolocator"), ECHOLOCATOR);
         Registry.register(Registries.ITEM, Ids.id("diamond_mesh"), DIAMOND_MESH_ITEM);
         Registry.register(Registries.ITEM, Ids.id("landing_pad"), LANDING_PAD_ITEM);

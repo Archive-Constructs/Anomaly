@@ -1,13 +1,13 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "QAQ",
+    " A ",
     "A#A",
-    "QAQ"
+    " A "
   ],
   "key": {
     "A": {
-      "item": "minecraft:netherite_scrap"
+      "item": "minecraft:netherite_ingot"
     },
     "#": {
       "item": "minecraft:redstone_block"

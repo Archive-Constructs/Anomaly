@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "Q#Q",
+    "#A#",
+    "Q#Q"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:end_crystal"
+    },
+    "Q": {
+      "item": "anomaly:echo_nugget"
+    },
+    "A": {
+      "item": "anomaly:arcane_anomaly"
+    }
+  },
+  "result": {
+    "item": "anomaly:overcharged_anomaly"
+  }
+}

@@ -1,22 +1,25 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "QQQ",
-    "#A#",
-    "###"
+    "  A",
+    "#L ",
+    "Q# "
   ],
   "key": {
-    "A": {
-      "item": "anomaly:echo_nugget"
-    },
     "#": {
       "item": "minecraft:iron_ingot"
     },
     "Q": {
+      "item": "anomaly:diamond_mesh"
+    },
+    "L": {
+      "item": "anomaly:cable_connector"
+    },
+    "A": {
       "item": "minecraft:copper_ingot"
     }
   },
   "result": {
-    "item": "anomaly:diamond_mesh"
+    "item": "anomaly:teleporter_linker"
   }
 }

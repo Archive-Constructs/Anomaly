@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -108,10 +109,6 @@ public class EchoRelocatorItem extends Item {
         // Cooldown
         player.getItemCooldownManager().set(this, COOLDOWN);
 
-        // Effects (same as your original)
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, INVIS_DURATION, 0, false, false));
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, RESISTANCE_DURATION, 4, false, false));
-
         // Departure particles + sound
         spawnDust((ServerWorld) world, player.getBlockPos());
         world.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.PLAYERS, 1.0f, 0.8f);
@@ -162,7 +159,7 @@ public class EchoRelocatorItem extends Item {
 
     private void spawnDust(ServerWorld world, BlockPos pos) {
         world.spawnParticles(
-                ECHO_DUST,
+                ParticleTypes.GLOW,
                 pos.getX() + 0.5,
                 pos.getY() + 1.0,
                 pos.getZ() + 0.5,

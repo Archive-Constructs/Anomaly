@@ -37,6 +37,16 @@ public class ModSounds {
     public static final SoundEvent RUNEFORGED_CROWN_EXPLOSION =
             SoundEvent.of(RUNEFORGED_CROWN_EXPLOSION_ID);
 
+    public static final Identifier CABLE_CONNECTOR_HUM_ID =
+            new Identifier(Anomaly.MOD_ID, "cable_connector_hum");
+    public static final SoundEvent CABLE_CONNECTOR_HUM =
+            SoundEvent.of(CABLE_CONNECTOR_HUM_ID);
+
+    public static final Identifier HEXTECH_WRENCH_HIT_ID =
+            new Identifier(Anomaly.MOD_ID, "copper_wrench_hit");
+    public static final SoundEvent HEXTECH_WRENCH_HIT =
+            SoundEvent.of(HEXTECH_WRENCH_HIT_ID);
+
 
     public static void registerSounds() {
         Registry.register(Registries.SOUND_EVENT, WILD_RUNE_AMBIENT_ID, WILD_RUNE_AMBIENT);
@@ -45,5 +55,7 @@ public class ModSounds {
         Registry.register(Registries.SOUND_EVENT, HEXTECH_SPIRE_SHOOT_ID, HEXTECH_SPIRE_SHOOT);
         Registry.register(Registries.SOUND_EVENT, OVERCHARGED_ANOMALY_CRITICAL_ID, OVERCHARGED_ANOMALY_CRITICAL);
         Registry.register(Registries.SOUND_EVENT, RUNEFORGED_CROWN_EXPLOSION_ID, RUNEFORGED_CROWN_EXPLOSION);
+        Registry.register(Registries.SOUND_EVENT, HEXTECH_WRENCH_HIT_ID, HEXTECH_WRENCH_HIT);
+        Registry.register(Registries.SOUND_EVENT, CABLE_CONNECTOR_HUM_ID, CABLE_CONNECTOR_HUM);
     }
 }

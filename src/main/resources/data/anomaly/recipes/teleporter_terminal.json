@@ -1,22 +1,28 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "QQQ",
-    "#A#",
-    "###"
+    "Q#Q",
+    "AOA",
+    "PPP"
   ],
   "key": {
-    "A": {
-      "item": "anomaly:echo_nugget"
-    },
     "#": {
-      "item": "minecraft:iron_ingot"
+      "item": "anomaly:hextech_gemstone"
     },
     "Q": {
+      "item": "anomaly:echo_nugget"
+    },
+    "P": {
+      "item": "minecraft:iron_ingot"
+    },
+    "O": {
+      "item": "minecraft:observer"
+    },
+    "A": {
       "item": "minecraft:copper_ingot"
     }
   },
   "result": {
-    "item": "anomaly:diamond_mesh"
+    "item": "anomaly:teleporter_terminal"
   }
 }

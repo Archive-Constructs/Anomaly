@@ -1,22 +1,22 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "QQQ",
-    "#A#",
-    "###"
+    "  A",
+    " L ",
+    "Q  "
   ],
   "key": {
-    "A": {
-      "item": "anomaly:echo_nugget"
-    },
-    "#": {
+    "Q": {
       "item": "minecraft:iron_ingot"
     },
-    "Q": {
+    "L": {
       "item": "minecraft:copper_ingot"
+    },
+    "A": {
+      "item": "minecraft:string"
     }
   },
   "result": {
-    "item": "anomaly:diamond_mesh"
+    "item": "anomaly:spire_mark"
   }
 }

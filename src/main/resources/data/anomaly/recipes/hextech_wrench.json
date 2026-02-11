@@ -1,19 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "Q#Q",
-    "#Q#",
-    "Q#Q"
+    "  Q",
+    " Q ",
+    "Q  "
   ],
   "key": {
-    "#": {
-      "item": "anomaly:echo_nugget"
-    },
     "Q": {
       "item": "minecraft:copper_ingot"
     }
   },
   "result": {
-    "item": "anomaly:cable_connector"
+    "item": "anomaly:hextech_wrench"
   }
 }
