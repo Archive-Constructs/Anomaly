@@ -26,13 +26,25 @@ public final class ModBlocks {
     public static final Block CABLE_CONNECTOR =
             new CableConnectorBlock(Block.Settings.copy(Blocks.COPPER_BLOCK).strength(5.0f, 1200).luminance(s -> 15).requiresTool());
 
+    public static final Block CHISELED_HEXTECH_BLOCK =
+            new Block(Block.Settings.copy(Blocks.DIAMOND_BLOCK).requiresTool());
+
+    public static final Block OVERCHARGED_TELEPORTER_BLOCK =
+            new OverchargedTeleporterBlock(Block.Settings.copy(ModBlocks.TELEPORTER_TERMINAL));
+
+    public static final Block HEXTECH_BLOCK =
+            new Block(Block.Settings.copy(Blocks.DIAMOND_BLOCK).requiresTool());
+
     public static final Block REINFORCED_REDSTONE_BLOCK =
             new ReinforcedRedstoneBlock(Block.Settings.copy(Blocks.REDSTONE_BLOCK).strength(10.0f, 12000).requiresTool());
 
     public static void register() {
         Registry.register(Registries.BLOCK, Ids.id("hextech_teleporter"), HEXTECH_TELEPORTER);
+        Registry.register(Registries.BLOCK, Ids.id("chiseled_hextech_block"), CHISELED_HEXTECH_BLOCK);
+        Registry.register(Registries.BLOCK, Ids.id("hextech_block"), HEXTECH_BLOCK);
         Registry.register(Registries.BLOCK, Ids.id("diamond_mesh"), DIAMOND_MESH);
         Registry.register(Registries.BLOCK, Ids.id("landing_pad"), LANDING_PAD);
+        Registry.register(Registries.BLOCK, Ids.id("overcharged_teleporter"), OVERCHARGED_TELEPORTER_BLOCK);
         Registry.register(Registries.BLOCK, Ids.id("teleporter_terminal"), TELEPORTER_TERMINAL);
         Registry.register(Registries.BLOCK, Ids.id("cable_connector"), CABLE_CONNECTOR);
         Registry.register(Registries.BLOCK, Ids.id("hextech_spire"), HEXTECH_SPIRE);// NEW

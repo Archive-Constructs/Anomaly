@@ -4,19 +4,17 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.EnchantmentTarget;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ToolMaterial;
+import net.minecraft.item.PickaxeItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.pufferfish.anomaly.block.HextechTeleporterBlock;
+import net.pufferfish.anomaly.client.ModModelPredicates;
 import net.pufferfish.anomaly.enchantment.SlaughterEnchantment;
 import net.pufferfish.anomaly.item.HextechWrenchItem;
 import net.pufferfish.anomaly.item.RecoveryCompassHextechHandler;
@@ -30,6 +28,7 @@ import net.pufferfish.anomaly.item.ModItems;
 import net.pufferfish.anomaly.block.entity.ModBlockEntities;
 import net.pufferfish.anomaly.screen.ModScreenHandlers;
 import net.pufferfish.anomaly.net.ModPackets;
+import net.pufferfish.anomaly.poi.ModPoiTypes;
 
 public class Anomaly implements ModInitializer {
 	public static final String MOD_ID = "anomaly";
@@ -40,6 +39,7 @@ public class Anomaly implements ModInitializer {
 	public void onInitialize() {
 		ModBlocks.register();
 		ModItems.register();
+		ModPoiTypes.register(); // <----- ADD THIS
 		ModBlockEntities.register();
 		ModScreenHandlers.register();
 		ModPackets.registerServer();
@@ -50,9 +50,10 @@ public class Anomaly implements ModInitializer {
 		ModLootInjector.register();
 		RecoveryCompassHextechHandler.register();
 		registerWrenchDamageHook();
+		net.pufferfish.anomaly.item.ArcaneAnomalyClouds.init();
+		ModModelPredicates.init();
 
-		//Sounds for teleporter
-		//PAD
+		// Sounds for teleporter
 		HextechTeleporterBlock.setDestinationCue(HextechTeleporterBlock.Stage.SMALL, SoundEvents.BLOCK_CONDUIT_ACTIVATE, 0.5f, 1.5f);
 		HextechTeleporterBlock.setDestinationCue(HextechTeleporterBlock.Stage.MEDIUM, SoundEvents.BLOCK_CONDUIT_ACTIVATE, 1.0f, 1f);
 		HextechTeleporterBlock.setDestinationCue(HextechTeleporterBlock.Stage.LARGE, SoundEvents.BLOCK_CONDUIT_ACTIVATE, 1.5f, 0.5f);
@@ -63,7 +64,6 @@ public class Anomaly implements ModInitializer {
 		HextechTeleporterBlock.setDestinationCue(HextechTeleporterBlock.Stage.LARGE, SoundEvents.ENTITY_ILLUSIONER_PREPARE_BLINDNESS, 1.5f, 0.5f);
 		HextechTeleporterBlock.setDestinationCue(HextechTeleporterBlock.Stage.BEAM, ModSounds.HEXTECH_TELEPORTER_USE, 5f, 0.5f);
 
-		//TELEPORTER
 		HextechTeleporterBlock.setSourceCue(HextechTeleporterBlock.Stage.SMALL,  SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 0.5f, 1.5f);
 		HextechTeleporterBlock.setSourceCue(HextechTeleporterBlock.Stage.MEDIUM,  SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 1f);
 		HextechTeleporterBlock.setSourceCue(HextechTeleporterBlock.Stage.LARGE,  SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, 1.5f, 0.5f);
@@ -79,53 +79,49 @@ public class Anomaly implements ModInitializer {
 		Registry.register(Registries.ENCHANTMENT,
 				new Identifier(Anomaly.MOD_ID, "slaughter"),
 				SLAUGHTER_ENCHANTMENT);
-
 	}
 
 	public static void registerWrenchDamageHook() {
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
 			if (world.isClient()) return ActionResult.PASS;
 
-			var stack = player.getStackInHand(hand);
-			if (!(stack.getItem() instanceof HextechWrenchItem)) return ActionResult.PASS;
+			ItemStack stack = player.getStackInHand(hand);
 			if (!(entity instanceof LivingEntity target)) return ActionResult.PASS;
 
 			int level = EnchantmentHelper.getLevel(Anomaly.SLAUGHTER_ENCHANTMENT, stack);
 			if (level <= 0) return ActionResult.PASS;
 
-			// Cooldown check BEFORE vanilla resets it
-			float cooldown = player.getAttackCooldownProgress(0.0f);
-			if (cooldown < 0.90f) return ActionResult.FAIL; // prevent spam
-
 			float armor = HextechWrenchItem.calculateArmorPoints(target);
+			if (armor <= 0.0f) return ActionResult.PASS;
 
-			// no armor => no damage
-			float damage = (armor <= 0.0f)
-					? 0.0f
-					: (armor * (0.6f * level) * 1.5f);
+			float bonusDamage = armor * (0.6f * level) * 1.5f;
 
-			// Apply single custom hit
-			target.damage(
-					player.getDamageSources().playerAttack(player),
-					damage
-			);
+			if (stack.getItem() instanceof HextechWrenchItem) {
+				float cooldown = player.getAttackCooldownProgress(0.0f);
+				if (cooldown < 0.90f) return ActionResult.FAIL;
 
-			// 🔊 CUSTOM HIT SOUND
-			world.playSound(
-					null, // null = all nearby players hear it
-					target.getBlockPos(),
-					ModSounds.HEXTECH_WRENCH_HIT, // heavy metallic hit
-					SoundCategory.PLAYERS,
-					1.0f,  // volume
-					0.9f + world.random.nextFloat() * 0.2f // slight pitch variation
-			);
+				target.damage(player.getDamageSources().playerAttack(player), bonusDamage);
 
-			// Swing animation
-			player.swingHand(hand, true);
+				world.playSound(null, target.getBlockPos(), ModSounds.HEXTECH_WRENCH_HIT,
+						SoundCategory.PLAYERS, 1.0f, 0.9f + world.random.nextFloat() * 0.2f);
 
-			// VERY IMPORTANT: cancel vanilla damage
-			return ActionResult.FAIL;
+				player.swingHand(hand, true);
+				return ActionResult.FAIL;
+			}
+
+			if (stack.getItem() instanceof PickaxeItem) {
+				float cooldown = player.getAttackCooldownProgress(0.0f);
+				if (cooldown < 0.90f) return ActionResult.PASS;
+
+				target.damage(player.getDamageSources().playerAttack(player), bonusDamage - 1f);
+
+				world.playSound(null, target.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_CRIT,
+						SoundCategory.PLAYERS, 1.0f, 1.0f);
+
+				return ActionResult.PASS;
+			}
+
+			return ActionResult.PASS;
 		});
 	}
-
 }

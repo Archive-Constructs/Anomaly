@@ -3,15 +3,14 @@ package net.pufferfish.anomaly.enchantment;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.Item;
-import net.minecraft.util.Identifier;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.Registries;
-import net.pufferfish.anomaly.Anomaly;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.PickaxeItem;
+import net.pufferfish.anomaly.item.HextechWrenchItem;
 
 public class SlaughterEnchantment extends Enchantment {
     public SlaughterEnchantment() {
-        super(Rarity.RARE, EnchantmentTarget.WEAPON, new EquipmentSlot[] { EquipmentSlot.MAINHAND });
+        // Use BREAKABLE so we can whitelist specific items in isAcceptableItem
+        super(Rarity.RARE, EnchantmentTarget.BREAKABLE, new EquipmentSlot[] { EquipmentSlot.MAINHAND });
     }
 
     @Override
@@ -27,5 +26,11 @@ public class SlaughterEnchantment extends Enchantment {
     @Override
     public int getMaxLevel() {
         return 1;
+    }
+
+    @Override
+    public boolean isAcceptableItem(ItemStack stack) {
+        return stack.getItem() instanceof HextechWrenchItem
+                || stack.getItem() instanceof PickaxeItem;
     }
 }

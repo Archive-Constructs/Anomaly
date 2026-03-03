@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/crossbow",
+  "textures": {
+    "layer0": "anomaly:item/hextech_crossbow_hand"
+  },
+  "overrides": [
+    { "predicate": { "anomaly:gui": 1, "anomaly:overcharged": 1 }, "model": "anomaly:item/hextech_crossbow_gui_overcharged" },
+    { "predicate": { "anomaly:gui": 1, "charged": 1 }, "model": "anomaly:item/hextech_crossbow_gui_charged" },
+    { "predicate": { "anomaly:gui": 1 }, "model": "anomaly:item/hextech_crossbow_gui" },
+
+    { "predicate": { "anomaly:overcharged": 1 }, "model": "anomaly:item/hextech_crossbow_overcharged" },
+    { "predicate": { "charged": 1 }, "model": "anomaly:item/hextech_crossbow_charged" }
+  ]
+}

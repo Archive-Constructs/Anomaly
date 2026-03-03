@@ -13,6 +13,7 @@ import net.minecraft.util.Rarity;
 import net.pufferfish.anomaly.Anomaly;
 import net.pufferfish.anomaly.Ids;
 import net.pufferfish.anomaly.block.ModBlocks;
+import net.pufferfish.anomaly.block.OverchargedTeleporterBlock;
 
 public final class ModItems {
     public static final Item HEXTECH_TELEPORTER_ITEM =
@@ -55,6 +56,12 @@ public final class ModItems {
     public static final Item ARCANE_ANOMALY =
             new Item(new Item.Settings().maxCount(1).rarity(Rarity.RARE));
 
+    public static final Item HEXTECH_BLOCK_ITEM =
+            new BlockItem(ModBlocks.HEXTECH_BLOCK, new Item.Settings());
+
+    public static final Item CHISELED_HEXTECH_BLOCK_ITEM =
+            new BlockItem(ModBlocks.CHISELED_HEXTECH_BLOCK, new Item.Settings());
+
     public static final Item ECHOLOCATOR =
             new EcholocatorItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON));
 
@@ -64,12 +71,23 @@ public final class ModItems {
     public static final Item TOTEM_OF_FORCEFIELD =
             new TotemOfForcefieldItem(new Item.Settings().maxCount(1));
 
+    public static final Item HEXTECH_CROSSBOW_ITEM =
+            new HextechCrossbowItem(new Item.Settings().maxCount(1));
 
     public static final Item REINFORCED_REDSTONE_BLOCK_ITEM =
             new BlockItem(ModBlocks.REINFORCED_REDSTONE_BLOCK, new Item.Settings());
 
+    public static final Item OVERCHARGED_TELEPORTER_BLOCK_ITEM =
+            new BlockItem(ModBlocks.OVERCHARGED_TELEPORTER_BLOCK, new Item.Settings());
+
     public static final Item HEXTECH_WRENCH_ITEM =
             new HextechWrenchItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC));
+
+    public static final Item STABSHOT_CONTROLLER =
+            new StabshotControllerItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE));
+
+    public static final Item NUKE_CONTROLLER =
+            new NukeControllerItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE));
 
     public static final Item RUNEFORGED_CROWN = register("runeforged_crown",
             new RuneforgedCrownItem(CustomArmorMaterials.RUNEFORGED, ArmorItem.Type.HELMET, new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
@@ -81,6 +99,8 @@ public final class ModItems {
 
     public static void register() {
         Registry.register(Registries.ITEM, Ids.id("hextech_teleporter"), HEXTECH_TELEPORTER_ITEM);
+        Registry.register(Registries.ITEM, Ids.id("chiseled_hextech_block"), CHISELED_HEXTECH_BLOCK_ITEM);
+        Registry.register(Registries.ITEM, Ids.id("hextech_block"), HEXTECH_BLOCK_ITEM);
         Registry.register(Registries.ITEM, Ids.id("hextech_wrench"), HEXTECH_WRENCH_ITEM);
         Registry.register(Registries.ITEM, Ids.id("echolocator"), ECHOLOCATOR);
         Registry.register(Registries.ITEM, Ids.id("diamond_mesh"), DIAMOND_MESH_ITEM);
@@ -98,5 +118,9 @@ public final class ModItems {
         Registry.register(Registries.ITEM, Ids.id("teleporter_linker"), TELEPORTER_LINKER);
         Registry.register(Registries.ITEM, Ids.id("totem_of_forcefield"), TOTEM_OF_FORCEFIELD);
         Registry.register(Registries.ITEM, Ids.id("echo_nugget"), ECHO_NUGGET);
+        Registry.register(Registries.ITEM, Ids.id("overcharged_teleporter"), OVERCHARGED_TELEPORTER_BLOCK_ITEM);
+        Registry.register(Registries.ITEM, Ids.id("nuke_controller"), NUKE_CONTROLLER);
+        Registry.register(Registries.ITEM, Ids.id("stabshot_controller"), STABSHOT_CONTROLLER);
+        Registry.register(Registries.ITEM, Ids.id("hextech_crossbow"), HEXTECH_CROSSBOW_ITEM);
     }
 }

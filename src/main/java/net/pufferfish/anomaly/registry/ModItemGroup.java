@@ -23,18 +23,22 @@ public final class ModItemGroup {
                 new Identifier(Anomaly.MOD_ID, "anomaly_tab"),
                 FabricItemGroup.builder()
                         .displayName(Text.translatable("itemGroup.anomaly_tab"))
-                        .icon(() -> new ItemStack(ModBlocks.TELEPORTER_TERMINAL)) // pick any icon
+                        .icon(() -> {
+                            ItemStack s = new ItemStack(ModBlocks.TELEPORTER_TERMINAL.asItem());
+                            s.setCount(1);
+                            return s;
+                        })
                         .entries((ctx, entries) -> {
-                            // ----- Add everything you want to appear in the tab -----
-
-                            // Blocks (you can pass Block or ItemStack)
-                            entries.add(ModBlocks.HEXTECH_SPIRE);
-                            entries.add(ModBlocks.REINFORCED_REDSTONE_BLOCK);
-                            entries.add(ModBlocks.HEXTECH_TELEPORTER);
-                            entries.add(ModBlocks.LANDING_PAD);
-                            entries.add(ModBlocks.CABLE_CONNECTOR);
-                            entries.add(ModBlocks.DIAMOND_MESH);
-                            entries.add(ModBlocks.TELEPORTER_TERMINAL);
+                            // Blocks
+                            entries.add(ModBlocks.HEXTECH_SPIRE.asItem());
+                            entries.add(ModBlocks.REINFORCED_REDSTONE_BLOCK.asItem());
+                            entries.add(ModBlocks.HEXTECH_TELEPORTER.asItem());
+                            entries.add(ModBlocks.LANDING_PAD.asItem());
+                            entries.add(ModBlocks.CABLE_CONNECTOR.asItem());
+                            entries.add(ModBlocks.DIAMOND_MESH.asItem());
+                            entries.add(ModBlocks.TELEPORTER_TERMINAL.asItem());
+                            entries.add(ModBlocks.HEXTECH_BLOCK.asItem());
+                            entries.add(ModBlocks.CHISELED_HEXTECH_BLOCK.asItem());
 
                             // Items
                             entries.add(ModItems.SPIRE_MARK);
@@ -48,7 +52,6 @@ public final class ModItemGroup {
                             entries.add(ModItems.RUNEFORGED_CROWN);
                             entries.add(ModItems.ECHO_NUGGET);
                             entries.add(ModItems.ECHOLOCATOR);
-
                         })
                         .build()
         );

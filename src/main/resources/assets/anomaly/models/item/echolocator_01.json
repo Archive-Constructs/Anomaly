@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "anomaly:item/echolocator_base",
+    "layer1": "anomaly:item/echolocator_overlay_01"
+  }
+}

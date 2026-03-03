@@ -21,7 +21,7 @@ public class OverchargedAnomalyEntity extends Entity {
     private static final float MIN_RADIUS       = 0.1f;
 
     private static final float END_CRYSTAL_POWER = 5.0f;
-    private static final float EXPLOSION_POWER   = END_CRYSTAL_POWER * 20.0f;
+    private static final float EXPLOSION_POWER   = END_CRYSTAL_POWER * 5.0f;
 
     private static final int SOUND_INTERVAL = 60;
     private int soundTimer = 0;

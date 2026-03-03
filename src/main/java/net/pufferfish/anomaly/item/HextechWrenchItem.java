@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.EquipmentSlot;
@@ -19,19 +20,23 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.pufferfish.anomaly.Anomaly;
 import net.pufferfish.anomaly.block.ModBlocks;
 import net.pufferfish.anomaly.sound.ModSounds;
 
+import java.util.List;
+
 public class HextechWrenchItem extends Item {
 
     // These control how the wrench feels as a weapon.
     // Vanilla reference: sword is -2.4, axes are slower (more negative).
     private static final double ATTACK_DAMAGE = 1.0D;      // base damage shown on tooltip
-    private static final double ATTACK_SPEED  = -3.0D;     // try -2.4 (fast) to -3.2 (slow)
+    private static final double ATTACK_SPEED  = -2.8D;     // try -2.4 (fast) to -3.2 (slow)
 
     private final Multimap<EntityAttribute, EntityAttributeModifier> attributeModifiers;
 
@@ -73,6 +78,14 @@ public class HextechWrenchItem extends Item {
     }
 
     @Override
+    public void appendTooltip(ItemStack stack, World world, List<Text> lines, TooltipContext ctx) {
+        lines.add(Text.literal(" Shift + Right Click on a hextech block to pick them up ")
+                .formatted(Formatting.GOLD));
+        lines.add(Text.literal(" (Also comes handy as a weapon) ")
+                .formatted(Formatting.ITALIC, Formatting.GOLD));
+    }
+
+    @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
         World world = context.getWorld();
         if (world.isClient()) return ActionResult.PASS;
@@ -96,6 +109,8 @@ public class HextechWrenchItem extends Item {
                 state.isOf(ModBlocks.HEXTECH_TELEPORTER) ||
                 state.isOf(ModBlocks.HEXTECH_SPIRE) ||
                 state.isOf(ModBlocks.CABLE_CONNECTOR) ||
+                state.isOf(ModBlocks.CHISELED_HEXTECH_BLOCK) ||
+                state.isOf(ModBlocks.HEXTECH_BLOCK) ||
                 state.isOf(ModBlocks.DIAMOND_MESH)) {
 
             world.setBlockState(pos, Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "anomaly:hextech_block"
+    }
+  ],
+  "result": {
+    "item": "anomaly:hextech_gemstone",
+    "count": 9
+  }
+}

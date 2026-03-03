@@ -1,0 +1,8 @@
+{
+    "type": "minecraft:stonecutting",
+    "ingredient": {
+        "item": "anomaly:hextech_block"
+    },
+    "result": "anomaly:chiseled_hextech_block",
+    "count": 1
+}

@@ -14,7 +14,7 @@ public enum CustomArmorMaterials implements ArmorMaterial {
             new int[]{0, 0, 0, 2},   // protection per type: BOOTS, LEGGINGS, CHESTPLATE, HELMET
             25,
             2.0f,
-            1.0f,
+            0.0f,
             SoundEvents.ITEM_ARMOR_EQUIP_GOLD
     );
 

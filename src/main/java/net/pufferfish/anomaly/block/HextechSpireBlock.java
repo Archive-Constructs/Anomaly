@@ -1,7 +1,6 @@
 package net.pufferfish.anomaly.block;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,26 +8,34 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 import net.pufferfish.anomaly.item.ModItems;
+import net.pufferfish.anomaly.item.SpireMarkItem;
 import net.pufferfish.anomaly.sound.ModSounds;
 import net.pufferfish.anomaly.util.CrownHooks;
 import org.joml.Vector3f;
@@ -53,9 +60,18 @@ public class HextechSpireBlock extends Block {
     private static final int SCAN_RADIUS = 32;
     private static final int COOLDOWN_TICKS = 100;
 
+    // When a shot attempt fails, wait a bit before reacquiring (prevents spam)
+    private static final int REACQUIRE_COOLDOWN_TICKS = 10;
+
+    // If target is non-glowing and LOS flickers false, allow a few misses before dropping
+    private static final int LOS_GRACE_TICKS = 5;
+
+    // NEW: Glowing duration applied when the spire has LOS to its current target
+    private static final int GLOW_TICKS = 20 * 5;
+
     /* damage */
     private static final float DMG_L1 = 6.0f;
-    private static final float DMG_AOE = 10.0f;
+    private static final float DMG_AOE = 5.0f;
 
     /* knockback */
     private static final double KB_L1 = 0.5;
@@ -64,9 +80,9 @@ public class HextechSpireBlock extends Block {
 
     /* mesh */
     private static final int MAX_MESH_SCAN = 8192;
-    private static final int LEVEL1_START = 10;
-    private static final int LEVEL2_START = 20;
-    private static final int LEVEL3_START = 30;
+    private static final int LEVEL1_START = 16;
+    private static final int LEVEL2_START = 32;
+    private static final int LEVEL3_START = 64;
 
     /* owner memory (non-persistent) */
     private static final ConcurrentHashMap<BlockPos, UUID> OWNER = new ConcurrentHashMap<>();
@@ -81,8 +97,11 @@ public class HextechSpireBlock extends Block {
     public void onPlaced(World world, BlockPos pos, BlockState state,
                          LivingEntity placer, ItemStack stack) {
         super.onPlaced(world, pos, state, placer, stack);
-        if (!world.isClient && placer instanceof PlayerEntity p) {
-            OWNER.put(pos.toImmutable(), p.getUuid());
+        if (!world.isClient) {
+            if (placer instanceof PlayerEntity p) {
+                OWNER.put(pos.toImmutable(), p.getUuid());
+            }
+            ((ServerWorld) world).scheduleBlockTick(pos, this, 1);
         }
     }
 
@@ -92,6 +111,16 @@ public class HextechSpireBlock extends Block {
         super.onStateReplaced(state, world, pos, newState, moved);
         if (!world.isClient && !state.isOf(newState.getBlock())) {
             OWNER.remove(pos.toImmutable());
+            ShotData.MAP.remove(pos.toImmutable());
+        }
+    }
+
+    @Override
+    public void neighborUpdate(BlockState state, World world, BlockPos pos,
+                               Block block, BlockPos fromPos, boolean notify) {
+        super.neighborUpdate(state, world, pos, block, fromPos, notify);
+        if (!world.isClient) {
+            ((ServerWorld) world).scheduleBlockTick(pos, this, 1);
         }
     }
 
@@ -103,10 +132,32 @@ public class HextechSpireBlock extends Block {
         if (world.isClient) return ActionResult.SUCCESS;
 
         ItemStack held = player.getStackInHand(hand);
+
+        // Bind mark to THIS spire (owner-only, max 16 binds)
         if (held.isOf(ModItems.SPIRE_MARK)) {
-            bindMark(held, pos);
-            OWNER.put(pos.toImmutable(), player.getUuid());
-            player.sendMessage(Text.literal("Spire bound."), true);
+            UUID owner = OWNER.get(pos.toImmutable());
+
+            if (owner != null && !owner.equals(player.getUuid())) {
+                player.sendMessage(Text.literal("You are not the owner of this spire.")
+                        .formatted(Formatting.RED), true);
+                return ActionResult.FAIL;
+            }
+
+            String dimId = world.getRegistryKey().getValue().toString();
+
+            boolean added = SpireMarkItem.addBind(held, dimId, pos.getX(), pos.getY(), pos.getZ());
+            if (!added) {
+                player.sendMessage(Text.literal("Spire Mark is full (16/16).")
+                        .formatted(Formatting.RED), true);
+                return ActionResult.FAIL;
+            }
+
+            if (owner == null) {
+                OWNER.put(pos.toImmutable(), player.getUuid());
+            }
+
+            player.sendMessage(Text.literal("Spire added (" + SpireMarkItem.getBindCount(held) + "/16).")
+                    .formatted(Formatting.AQUA), true);
             return ActionResult.SUCCESS;
         }
 
@@ -121,15 +172,6 @@ public class HextechSpireBlock extends Block {
         ), true);
 
         return ActionResult.SUCCESS;
-    }
-
-    private void bindMark(ItemStack stack, BlockPos pos) {
-        NbtCompound tag = stack.getOrCreateNbt();
-        NbtCompound b = new NbtCompound();
-        b.putInt("x", pos.getX());
-        b.putInt("y", pos.getY());
-        b.putInt("z", pos.getZ());
-        tag.put("SpireBind", b);
     }
 
     /* ========== ticking ========== */
@@ -160,28 +202,80 @@ public class HextechSpireBlock extends Block {
         int level = computeLevel(countDiamondMeshViaConnectors(world, pos));
 
         if (!powered || level == 0) {
-            data.reset();
+            data.resetAll();
             return;
         }
 
+        Vec3d origin = centerTop(pos);
+
+// ========= Acquire (soft-lock; start shot only when LOS OR already glowing)
         if (!data.active()) {
-            LivingEntity target = findTarget(world, pos);
-            if (target != null) {
-                data.start(target.getUuid(), centerTop(pos),
-                        centerOf(target), computeScale(target), level);
+
+            // Keep soft-locked target if possible, otherwise pick a new one
+            LivingEntity cand = data.resolveSoft(world);
+            if (cand != null) {
+                // soft target must still be valid: player rules AND (LOS OR glowing)
+                if (!cand.isAlive() || !passesPlayerRules(world, pos, cand) || !canTarget(world, origin, cand)) {
+                    data.softTarget = null;
+                    cand = null;
+                }
+            }
+
+            if (cand == null) {
+                cand = findCandidate(world, pos, origin);
+                data.softTarget = (cand == null) ? null : cand.getUuid();
+            }
+
+            if (cand == null) return;
+
+// If we have LOS, apply/refresh glowing for 5 seconds
+            applyGlowingIfHasLos(world, origin, cand);
+
+// Start the actual shot (and play sound) only if LOS OR glowing
+            if (canTarget(world, origin, cand)) {
+                data.start(cand.getUuid(), origin, centerOf(cand), computeScale(cand), level);
 
                 world.playSound(null, pos,
                         ModSounds.HEXTECH_SPIRE_SHOOT,
-                        SoundCategory.BLOCKS, 5.0f, 1.0f);
+                        SoundCategory.BLOCKS, 4.0f, 0.90f);
             }
+
             return;
         }
 
+        // ========= Track
         LivingEntity target = data.resolveTarget(world);
-        if (target == null || !target.isAlive() || isImmune(pos, target)) {
-            data.reset();
+        if (target == null || !target.isAlive()) {
+            data.cooldown = REACQUIRE_COOLDOWN_TICKS;
+            data.resetShotOnly();
             return;
         }
+
+        // Enforce player rules during tracking too
+        if (!passesPlayerRules(world, pos, target)) {
+            data.cooldown = REACQUIRE_COOLDOWN_TICKS;
+            data.resetShotOnly();
+            return;
+        }
+
+        // Refresh glowing ONLY when LOS is true
+        applyGlowingIfHasLos(world, data.from, target);
+
+        // LOS rules while shooting:
+        // - If LOS: ok
+        // - If no LOS: ok ONLY if glowing (wall-shot)
+        // - If no LOS and not glowing: allow a few misses then drop
+        boolean los = hasLineOfSight(world, data.from, target);
+        if (!los && !target.isGlowing()) {
+            data.losMisses++;
+            if (data.losMisses < LOS_GRACE_TICKS) {
+                return;
+            }
+            data.cooldown = REACQUIRE_COOLDOWN_TICKS;
+            data.resetShotOnly();
+            return;
+        }
+        data.losMisses = 0;
 
         data.to = centerOf(target);
 
@@ -206,69 +300,117 @@ public class HextechSpireBlock extends Block {
             }
         }
 
-
         drawBeam(world, data.from, data.to, 70);
 
         data.timer += VISUAL_TICK_INTERVAL;
         if (data.timer >= IMPACT_DELAY_TICKS) {
-            if (!isImmune(pos, target)) {
-                applyImpact(world, pos, target, data.level);
-            }
+            applyImpact(world, pos, target, data.level);
             data.cooldown = COOLDOWN_TICKS;
-            data.reset();
+            data.resetShotOnly();
+        }
+    }
+
+    /* ========== LOS (self-collision safe for full cube) ========== */
+
+    private boolean hasLineOfSight(ServerWorld world, Vec3d from, LivingEntity target) {
+        if (target == null) return false;
+
+        Vec3d end = target.getEyePos();
+        Vec3d delta = end.subtract(from);
+        if (delta.lengthSquared() < 1e-8) return true;
+
+        Vec3d dir = delta.normalize();
+
+        // Step OUT of the spire block so we don't collide with ourselves (full cube)
+        Vec3d start = from.add(dir.multiply(0.60));
+
+        HitResult hit = world.raycast(new RaycastContext(
+                start,
+                end,
+                RaycastContext.ShapeType.COLLIDER,
+                RaycastContext.FluidHandling.NONE,
+                target // must be non-null on 1.20.1
+        ));
+
+        if (hit.getType() == HitResult.Type.MISS) return true;
+
+        double maxDistSq = start.squaredDistanceTo(end);
+        double hitDistSq = start.squaredDistanceTo(hit.getPos());
+        return hitDistSq >= (maxDistSq - 0.15);
+    }
+
+    private boolean canTarget(ServerWorld world, Vec3d from, LivingEntity e) {
+        return e != null && e.isAlive() && (e.isGlowing() || hasLineOfSight(world, from, e));
+    }
+
+    /* ========== glowing helper ========== */
+
+    private void applyGlowingIfHasLos(ServerWorld world, Vec3d from, LivingEntity target) {
+        if (target == null || !target.isAlive()) return;
+
+        if (hasLineOfSight(world, from, target)) {
+            // refresh to 5s remaining; only applied while LOS is true
+            target.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, GLOW_TICKS, 0, false, false));
         }
     }
 
     /* ========== targeting ========== */
 
-    private LivingEntity findTarget(ServerWorld world, BlockPos pos) {
+    // Candidate selection: nearest valid entity (does NOT require glowing)
+    // Candidate selection: nearest valid entity that is either visible (LOS) OR already glowing
+    private LivingEntity findCandidate(ServerWorld world, BlockPos pos, Vec3d origin) {
         Box box = new Box(pos).expand(SCAN_RADIUS);
-        Vec3d origin = centerTop(pos);
 
-        return world.getEntitiesByClass(LivingEntity.class, box, le -> {
-            if (!le.isAlive()) return false;
-            if (isImmune(pos, le)) return false;
-
-            if (le instanceof PlayerEntity p) {
-                return !p.isCreative() && !p.isSpectator();
-            }
-            return true;
-        }).stream().min(Comparator.comparingDouble(
-                e -> e.getPos().squaredDistanceTo(origin)
-        )).orElse(null);
+        return world.getEntitiesByClass(LivingEntity.class, box, LivingEntity::isAlive)
+                .stream()
+                .filter(le -> passesPlayerRules(world, pos, le))
+                .filter(le -> canTarget(world, origin, le)) // <-- key change
+                .min(Comparator.comparingDouble(le -> le.getPos().squaredDistanceTo(origin)))
+                .orElse(null);
     }
 
-    /* ========== IMMUNITY LOGIC ========== */
+    private boolean passesPlayerRules(ServerWorld world, BlockPos spirePos, LivingEntity le) {
+        if (le instanceof PlayerEntity p) {
+            if (p.isCreative() || p.isSpectator()) return false;
+            if (isOwner(spirePos, p)) return false;
 
-    private boolean isImmune(BlockPos spirePos, LivingEntity le) {
-        if (!(le instanceof PlayerEntity player)) return false;
-
-        // Owner immune
-        UUID owner = OWNER.get(spirePos);
-        if (owner != null && owner.equals(player.getUuid())) {
-            return true;
+            String dimId = world.getRegistryKey().getValue().toString();
+            if (hasMarkBoundToThisSpire(p, spirePos, dimId)) return false;
         }
+        return true;
+    }
 
-        // Immune ONLY if mark is bound to THIS spire
+    /* ========== player exemption helpers ========== */
+
+    private boolean isOwner(BlockPos spirePos, PlayerEntity player) {
+        UUID owner = OWNER.get(spirePos.toImmutable());
+        return owner != null && owner.equals(player.getUuid());
+    }
+
+    // Multi-bind mark check (dim + pos) to match SpireMarkItem format
+    private boolean hasMarkBoundToThisSpire(PlayerEntity player, BlockPos spirePos, String dimId) {
         Inventory inv = player.getInventory();
         for (int i = 0; i < inv.size(); i++) {
             ItemStack stack = inv.getStack(i);
             if (!stack.isOf(ModItems.SPIRE_MARK)) continue;
 
             NbtCompound tag = stack.getNbt();
-            if (tag == null || !tag.contains("SpireBind")) continue;
+            if (tag == null || !tag.contains(SpireMarkItem.NBT_BINDS, NbtElement.LIST_TYPE)) continue;
 
-            NbtCompound b = tag.getCompound("SpireBind");
-            if (b.getInt("x") == spirePos.getX()
-                    && b.getInt("y") == spirePos.getY()
-                    && b.getInt("z") == spirePos.getZ()) {
-                return true;
+            NbtList list = tag.getList(SpireMarkItem.NBT_BINDS, NbtElement.COMPOUND_TYPE);
+            for (int j = 0; j < list.size(); j++) {
+                NbtCompound c = list.getCompound(j);
+                if (!dimId.equals(c.getString(SpireMarkItem.KEY_DIM))) continue;
+
+                if (c.getInt(SpireMarkItem.KEY_X) == spirePos.getX()
+                        && c.getInt(SpireMarkItem.KEY_Y) == spirePos.getY()
+                        && c.getInt(SpireMarkItem.KEY_Z) == spirePos.getZ()) {
+                    return true;
+                }
             }
         }
-
         return false;
     }
-
 
     /* ========== impact ========== */
 
@@ -284,7 +426,6 @@ public class HextechSpireBlock extends Block {
             case 1 -> target.damage(world.getDamageSources().magic(), DMG_L1);
             case 2 -> aoe(world, spirePos, centerOf(target), 4.5, KB_L2);
             case 3 -> aoe(world, spirePos, centerOf(target), 5.0, KB_L3);
-
         }
     }
 
@@ -293,14 +434,18 @@ public class HextechSpireBlock extends Block {
 
         Box box = new Box(center, center).expand(radius);
 
-
         for (LivingEntity le :
                 world.getEntitiesByClass(LivingEntity.class, box, LivingEntity::isAlive)) {
 
-            if (!isImmune(spirePos, le)) {
-                le.damage(world.getDamageSources().magic(), DMG_AOE);
-                knockBackFrom(le, center, kb);
+            if (le instanceof PlayerEntity p) {
+                if (isOwner(spirePos, p)) continue;
+
+                String dimId = world.getRegistryKey().getValue().toString();
+                if (hasMarkBoundToThisSpire(p, spirePos, dimId)) continue;
             }
+
+            le.damage(world.getDamageSources().magic(), DMG_AOE);
+            knockBackFrom(le, center, kb);
         }
 
         world.playSound(null, BlockPos.ofFloored(center),
@@ -308,11 +453,10 @@ public class HextechSpireBlock extends Block {
                 SoundCategory.BLOCKS, 0.7f, 1.0f);
     }
 
-
     /* ========== helpers ========== */
 
     private Vec3d centerTop(BlockPos pos) {
-        return new Vec3d(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
+        return new Vec3d(pos.getX() + 0.5, pos.getY() + 1.01, pos.getZ() + 0.5);
     }
 
     private Vec3d centerOf(LivingEntity e) {
@@ -386,12 +530,20 @@ public class HextechSpireBlock extends Block {
     /* ========== per-spire state ========== */
 
     private static final class ShotData {
+        // soft lock (targeting but not shooting yet)
+        UUID softTarget;
+
+        // shot state
         UUID target;
         Vec3d from, to;
         double scale;
         int level, stage, timer, cooldown;
 
+        // tracking stability
+        int losMisses;
+
         boolean active() { return target != null; }
+        boolean hasSoft() { return softTarget != null; }
 
         void start(UUID t, Vec3d f, Vec3d to, double s, int l) {
             target = t;
@@ -401,17 +553,40 @@ public class HextechSpireBlock extends Block {
             level = l;
             stage = 0;
             timer = 0;
+            losMisses = 0;
+
+            // once we start a real shot, clear soft-lock
+            softTarget = null;
         }
 
         LivingEntity resolveTarget(ServerWorld w) {
+            if (target == null) return null;
             Entity e = w.getEntity(target);
             return e instanceof LivingEntity le ? le : null;
         }
 
-        void reset() {
+        LivingEntity resolveSoft(ServerWorld w) {
+            if (softTarget == null) return null;
+            Entity e = w.getEntity(softTarget);
+            return e instanceof LivingEntity le ? le : null;
+        }
+
+        // reset only the current shot (keeps softTarget so it can start when LOS becomes true)
+        void resetShotOnly() {
             target = null;
             stage = 0;
             timer = 0;
+            losMisses = 0;
+        }
+
+        // drop everything (used when disabled, or when soft target becomes invalid)
+        void resetAll() {
+            target = null;
+            softTarget = null;
+            stage = 0;
+            timer = 0;
+            losMisses = 0;
+            cooldown = 0;
         }
 
         static final ConcurrentHashMap<BlockPos, ShotData> MAP =
@@ -423,6 +598,7 @@ public class HextechSpireBlock extends Block {
     }
 
     /* visuals */
+
     private void drawBeam(ServerWorld w, Vec3d from, Vec3d to, int steps) {
         Vec3d d = to.subtract(from);
         if (d.lengthSquared() < 1e-6) return;
@@ -432,6 +608,7 @@ public class HextechSpireBlock extends Block {
             w.spawnParticles(CYAN, p.x, p.y, p.z, 1, 0, 0, 0, 0);
         }
     }
+
     private void spawnRingsAt(ServerWorld world,
                               Vec3d from, Vec3d to,
                               RingSize size, double scale) {
@@ -529,6 +706,7 @@ public class HextechSpireBlock extends Block {
             data.timer = 0;
         }
     }
+
     /* ========== ring visuals ========== */
 
     private enum RingSize { LARGE, MEDIUM, SMALL }
@@ -542,7 +720,4 @@ public class HextechSpireBlock extends Block {
             this.v = v;
         }
     }
-
-
 }
-

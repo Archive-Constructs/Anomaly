@@ -1,6 +1,22 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "anomaly:item/echolocator"
-  }
+  "parent": "item/generated",
+  "textures": { "layer0": "anomaly:item/echolocator_base" },
+  "overrides": [
+    { "predicate": { "angle": 0.0000 }, "model": "anomaly:item/echolocator_08" },
+    { "predicate": { "angle": 0.0625 }, "model": "anomaly:item/echolocator_09" },
+    { "predicate": { "angle": 0.1250 }, "model": "anomaly:item/echolocator_10" },
+    { "predicate": { "angle": 0.1875 }, "model": "anomaly:item/echolocator_11" },
+    { "predicate": { "angle": 0.2500 }, "model": "anomaly:item/echolocator_12" },
+    { "predicate": { "angle": 0.3125 }, "model": "anomaly:item/echolocator_13" },
+    { "predicate": { "angle": 0.3750 }, "model": "anomaly:item/echolocator_14" },
+    { "predicate": { "angle": 0.4375 }, "model": "anomaly:item/echolocator_15" },
+    { "predicate": { "angle": 0.5000 }, "model": "anomaly:item/echolocator_00" },
+    { "predicate": { "angle": 0.5625 }, "model": "anomaly:item/echolocator_01" },
+    { "predicate": { "angle": 0.6250 }, "model": "anomaly:item/echolocator_02" },
+    { "predicate": { "angle": 0.6875 }, "model": "anomaly:item/echolocator_03" },
+    { "predicate": { "angle": 0.7500 }, "model": "anomaly:item/echolocator_04" },
+    { "predicate": { "angle": 0.8125 }, "model": "anomaly:item/echolocator_05" },
+    { "predicate": { "angle": 0.8750 }, "model": "anomaly:item/echolocator_06" },
+    { "predicate": { "angle": 0.9375 }, "model": "anomaly:item/echolocator_07" }
+  ]
 }

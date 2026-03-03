@@ -23,7 +23,7 @@ public abstract class ItemEntityMixin {
     // Tracks the previous on-ground state so we can detect the moment of landing.
     @Unique private boolean anomaly$wasOnGround = false;
 
-    private static final float  EXPLOSION_POWER = 8f; // TNT ≈ 4.0
+    private static final float  EXPLOSION_POWER = 2f; // TNT ≈ 4.0
     private static final DustParticleEffect BLUE =
             new DustParticleEffect(new Vector3f(0.2f, 0.6f, 1.0f), 1.0f);
 

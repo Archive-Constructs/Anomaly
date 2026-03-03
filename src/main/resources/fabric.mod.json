@@ -1,11 +1,11 @@
 {
 	"schemaVersion": 1,
 	"id": "anomaly",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"name": "Anomaly",
 	"description": "A totally sane minecraft tech mod",
 	"authors": [
-		"PufferfishGaming, BoxedBoi"
+		"PufferfishGaming, Salmon_Coral"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",

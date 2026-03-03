@@ -1,32 +1,44 @@
 package net.pufferfish.anomaly.item;
 
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
+import net.minecraft.world.poi.PointOfInterestStorage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
+
+import net.pufferfish.anomaly.poi.ModPoiTypes;
 
 public class EcholocatorItem extends Item {
 
-    public static final String NBT_OWNER_UUID = "AnomalyEchoOwnerUUID";
-    public static final String NBT_OWNER_NAME = "AnomalyEchoOwnerName";
+    // Stored on Echolocator for compass targeting
+    public static final String NBT_TARGET_POS = "AnomalyLandingPadPos"; // long (BlockPos#asLong)
+    public static final String NBT_TARGET_DIM = "AnomalyLandingPadDim"; // string (e.g. "minecraft:overworld")
 
-    // Stored on the RECOVERY COMPASS when attuned
-    public static final String NBT_COMPASS_TARGET_UUID = "AnomalyEchoTargetUUID";
-    public static final String NBT_COMPASS_TARGET_NAME = "AnomalyEchoTargetName";
+    private static final int FIND_RADIUS_BLOCKS = 256;
 
-    private static final int COMPASS_COOLDOWN_TICKS = 20 * 60; // 1 minute
+    private static final int GLOW_RADIUS_BLOCKS = 32;
+    private static final int GLOW_DURATION_TICKS = 20 * 30; // 30 seconds
+    private static final int COOLDOWN_TICKS = 20 * 60; // 1 minute
 
     public EcholocatorItem(Settings settings) {
         super(settings);
@@ -36,122 +48,76 @@ public class EcholocatorItem extends Item {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         NbtCompound nbt = stack.getNbt();
 
-        if (nbt != null && nbt.containsUuid(NBT_OWNER_UUID)) {
-            String name = nbt.getString(NBT_OWNER_NAME);
-            if (name == null || name.isEmpty()) name = "Unknown";
-
-            tooltip.add(
-                    Text.literal("Bound to: ")
-                            .formatted(Formatting.GRAY)
-                            .append(Text.literal(name).formatted(Formatting.AQUA))
-            );
-
-            tooltip.add(Text.literal("Use with a Recovery Compass in main hand.").formatted(Formatting.DARK_GRAY));
-            tooltip.add(Text.literal("Sneak-right-click to clear compass attunement.").formatted(Formatting.DARK_GRAY));
+        if (nbt != null && nbt.contains(NBT_TARGET_POS)) {
+            BlockPos pos = BlockPos.fromLong(nbt.getLong(NBT_TARGET_POS));
+            tooltip.add(Text.literal("Right-click: reveal nearby entities (32 blocks, 30s).").formatted(Formatting.DARK_GRAY));
+            tooltip.add(Text.literal("Cooldown: 60s.").formatted(Formatting.DARK_GRAY));
         } else {
-            tooltip.add(Text.literal("Unassigned").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
-            tooltip.add(Text.literal("Right-click to bind to yourself.").formatted(Formatting.GRAY));
+            tooltip.add(Text.literal("No landing pad within 256 blocks.").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+            tooltip.add(Text.literal("Move closer to a landing pad.").formatted(Formatting.GRAY));
         }
     }
-
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, net.minecraft.entity.player.PlayerEntity user, Hand hand) {
-        ItemStack echolocator = user.getStackInHand(hand);
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        ItemStack stack = user.getStackInHand(hand);
 
-        // If player is holding a Recovery Compass in MAIN hand and Echolocator is being used (usually offhand),
-        // treat this click as "attune/clear compass", because the compass itself doesn't have a use action.
-        ItemStack main = user.getMainHandStack();
-        if (main.isOf(Items.RECOVERY_COMPASS)) {
-            return handleCompassAttune(world, user, echolocator, main);
+        if (world.isClient) return TypedActionResult.success(stack);
+        if (!(user instanceof ServerPlayerEntity sp)) return TypedActionResult.pass(stack);
+
+        // 1 minute cooldown (on the item)
+        if (sp.getItemCooldownManager().isCoolingDown(this)) {
+            return TypedActionResult.fail(stack);
         }
 
-        // Otherwise: normal Echolocator signing
-        if (world.isClient) return TypedActionResult.success(echolocator);
-        if (!(user instanceof ServerPlayerEntity sp)) return TypedActionResult.pass(echolocator);
+        // Apply glowing to all LIVING entities in 32 block radius (players included)
+        Box box = sp.getBoundingBox().expand(GLOW_RADIUS_BLOCKS);
+        List<LivingEntity> targets = world.getEntitiesByClass(LivingEntity.class, box, e -> true);
 
-        NbtCompound nbt = echolocator.getOrCreateNbt();
-
-        // Prevent rebinding
-        if (nbt.containsUuid(NBT_OWNER_UUID)) {
-            String name = nbt.getString(NBT_OWNER_NAME);
-            if (name == null || name.isEmpty()) name = "someone";
-
-            sp.sendMessage(Text.literal("This Echolocator is already bound to " + name + "."), true);
-            world.playSound(null, sp.getX(), sp.getY(), sp.getZ(),
-                    SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0f, 1.0f);
-            return TypedActionResult.fail(echolocator);
+        for (LivingEntity e : targets) {
+            e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, GLOW_DURATION_TICKS, 0, false, true, true));
         }
 
-        // Bind to user
-        nbt.putUuid(NBT_OWNER_UUID, sp.getUuid());
-        nbt.putString(NBT_OWNER_NAME, sp.getName().getString());
+        sp.getItemCooldownManager().set(this, COOLDOWN_TICKS);
 
         world.playSound(null, sp.getX(), sp.getY(), sp.getZ(),
-                SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0f, 1.0f);
+                SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 0.8f, 1.2f);
 
-        sp.sendMessage(Text.literal("Echolocator signed to " + sp.getName().getString() + "."), true);
-        return TypedActionResult.success(echolocator);
+        sp.sendMessage(Text.literal("Echolocator pulse: highlighted " + targets.size() + " entities.").formatted(Formatting.AQUA), true);
+        return TypedActionResult.success(stack);
     }
 
-    private TypedActionResult<ItemStack> handleCompassAttune(World world,
-                                                             net.minecraft.entity.player.PlayerEntity user,
-                                                             ItemStack echolocator,
-                                                             ItemStack compass) {
-        // Client: consume so it feels responsive and doesn't do weird hand fallback
-        if (world.isClient) return TypedActionResult.success(echolocator);
-        if (!(user instanceof ServerPlayerEntity sp)) return TypedActionResult.pass(echolocator);
+    @Override
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        if (world.isClient) return;
+        if (!(world instanceof ServerWorld sw)) return;
+        if (!(entity instanceof ServerPlayerEntity sp)) return;
 
-        // Shift-right-click: clear compass attunement
-        if (sp.isSneaking()) {
-            NbtCompound cNbt = compass.getNbt();
-            if (cNbt != null) {
-                cNbt.remove(NBT_COMPASS_TARGET_UUID);
-                cNbt.remove(NBT_COMPASS_TARGET_NAME);
-                if (cNbt.isEmpty()) compass.setNbt(null);
-            }
+        // Update target once per second to keep POI queries cheap
+        if ((sw.getTime() % 20) != 0) return;
 
-            world.playSound(null, sp.getX(), sp.getY(), sp.getZ(),
-                    SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.PLAYERS, 0.9f, 1.2f);
+        Optional<BlockPos> nearest = findNearestLandingPad(sw, sp.getBlockPos(), FIND_RADIUS_BLOCKS);
 
-            sp.sendMessage(Text.literal("Recovery Compass attunement cleared."), true);
-            return TypedActionResult.success(echolocator);
+        NbtCompound nbt = stack.getOrCreateNbt();
+        if (nearest.isPresent()) {
+            BlockPos pos = nearest.get();
+            nbt.putLong(NBT_TARGET_POS, pos.asLong());
+            nbt.putString(NBT_TARGET_DIM, sw.getRegistryKey().getValue().toString());
+        } else {
+            nbt.remove(NBT_TARGET_POS);
+            nbt.remove(NBT_TARGET_DIM);
+            if (nbt.isEmpty()) stack.setNbt(null);
         }
-
-        // Require signed Echolocator
-        NbtCompound eNbt = echolocator.getNbt();
-        if (eNbt == null || !eNbt.containsUuid(NBT_OWNER_UUID)) {
-            sp.sendMessage(Text.literal("That Echolocator is not signed yet."), true);
-            return TypedActionResult.fail(echolocator);
-        }
-
-        // Cooldown check on the compass item
-        if (sp.getItemCooldownManager().isCoolingDown(Items.RECOVERY_COMPASS)) {
-            return TypedActionResult.fail(echolocator);
-        }
-
-        // Store target on the compass
-        NbtCompound cNbt = compass.getOrCreateNbt();
-        cNbt.putUuid(NBT_COMPASS_TARGET_UUID, eNbt.getUuid(NBT_OWNER_UUID));
-
-        String name = eNbt.getString(NBT_OWNER_NAME);
-        if (name != null && !name.isEmpty()) cNbt.putString(NBT_COMPASS_TARGET_NAME, name);
-
-        // Sound + cooldown
-        world.playSound(null, sp.getX(), sp.getY(), sp.getZ(),
-                SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0f, 1.0f);
-
-        sp.getItemCooldownManager().set(Items.RECOVERY_COMPASS, COMPASS_COOLDOWN_TICKS);
-
-        String targetName = cNbt.getString(NBT_COMPASS_TARGET_NAME);
-        if (targetName == null || targetName.isEmpty()) targetName = "that player";
-        sp.sendMessage(Text.literal("Recovery Compass attuned to " + targetName + "."), true);
-
-        return TypedActionResult.success(echolocator);
     }
 
-    public static boolean isSigned(ItemStack stack) {
-        NbtCompound nbt = stack.getNbt();
-        return nbt != null && nbt.containsUuid(NBT_OWNER_UUID);
+    private Optional<BlockPos> findNearestLandingPad(ServerWorld world, BlockPos origin, int radius) {
+        PointOfInterestStorage poiStorage = world.getPointOfInterestStorage();
+
+        return poiStorage.getNearestPosition(
+                poiEntry -> poiEntry.matchesKey(ModPoiTypes.LANDING_PAD_KEY),
+                origin,
+                radius,
+                PointOfInterestStorage.OccupationStatus.ANY
+        );
     }
 }

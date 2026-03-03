@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:item/crossbow",
+  "textures": { "layer0": "anomaly:item/hextech_crossbow_gui_overcharged" }
+}

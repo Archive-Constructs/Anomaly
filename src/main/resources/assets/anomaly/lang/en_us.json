@@ -5,6 +5,8 @@
   "block.anomaly.teleporter_terminal": "Teleporter Terminal",
   "block.anomaly.cable_connector": "Cable Connector",
   "block.anomaly.hextech_spire": "Hextech Spire",
+  "block.anomaly.chiseled_hextech_block": "Chiseled Hextech Block",
+  "block.anomaly.hextech_block": "Hextech Block",
 
   "item.anomaly.teleporter_linker": "Teleporter Linker",
   "item.anomaly.spire_mark": "Spire Mark",
